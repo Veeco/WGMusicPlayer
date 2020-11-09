@@ -30,4 +30,11 @@
     return CGRectInset ([super thumbRectForBounds:bounds trackRect:rect value:value], 10 , 10);
 }
 
+- (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    
+    if ([self.delegate respondsToSelector:@selector(touchesEndedWithMusicSlider:)]) {
+        [self.delegate touchesEndedWithMusicSlider:self];
+    }
+}
+
 @end

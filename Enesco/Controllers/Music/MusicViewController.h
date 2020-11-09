@@ -11,6 +11,9 @@
 #import "GVUserDefaults+Properties.h"
 #import "MusicEntity.h"
 
+extern NSString *const pathKey;
+extern NSString *const progressKey;
+
 @protocol MusicViewControllerDelegate <NSObject>
 @optional
 - (void)updatePlaybackIndicatorOfVisisbleCells;
@@ -26,6 +29,7 @@
 @property (nonatomic, weak) id<MusicViewControllerDelegate> delegate;
 @property (nonatomic, assign) BOOL isNotPresenting;
 @property (nonatomic, assign) MusicCycleType musicCycleType;
+@property (nonatomic, assign) BOOL prePlay;
 + (instancetype)sharedInstance;
 - (IBAction)playPreviousMusic:(id)sender;
 - (IBAction)playNextMusic:(id)sender;

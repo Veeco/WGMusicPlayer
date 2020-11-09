@@ -32,10 +32,6 @@
 		5643E1ED1C0D3907005D1A1C /* Track.m in Sources */ = {isa = PBXBuildFile; fileRef = 5643E1E71C0D3907005D1A1C /* Track.m */; };
 		5643E1EE1C0D3907005D1A1C /* NAKPlaybackIndicatorContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5643E1EA1C0D3907005D1A1C /* NAKPlaybackIndicatorContentView.m */; };
 		5643E1EF1C0D3907005D1A1C /* NAKPlaybackIndicatorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 5643E1EC1C0D3907005D1A1C /* NAKPlaybackIndicatorView.m */; };
-		56C1B9401C425A7900990D01 /* 1770040300_2031329_l.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 56C1B9361C425A7900990D01 /* 1770040300_2031329_l.mp3 */; };
-		56C1B9411C425A7900990D01 /* 1770059653_2050944_l.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 56C1B9371C425A7900990D01 /* 1770059653_2050944_l.mp3 */; };
-		56C1B9421C425A7900990D01 /* 1771694697_4194836_l.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 56C1B9381C425A7900990D01 /* 1771694697_4194836_l.mp3 */; };
-		56DBB02B1C116A280089EC56 /* music_list.json in Resources */ = {isa = PBXBuildFile; fileRef = 56DBB02A1C116A280089EC56 /* music_list.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -107,10 +103,6 @@
 		5643E1EA1C0D3907005D1A1C /* NAKPlaybackIndicatorContentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NAKPlaybackIndicatorContentView.m; sourceTree = "<group>"; };
 		5643E1EB1C0D3907005D1A1C /* NAKPlaybackIndicatorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NAKPlaybackIndicatorView.h; sourceTree = "<group>"; };
 		5643E1EC1C0D3907005D1A1C /* NAKPlaybackIndicatorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NAKPlaybackIndicatorView.m; sourceTree = "<group>"; };
-		56C1B9361C425A7900990D01 /* 1770040300_2031329_l.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 1770040300_2031329_l.mp3; sourceTree = "<group>"; };
-		56C1B9371C425A7900990D01 /* 1770059653_2050944_l.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 1770059653_2050944_l.mp3; sourceTree = "<group>"; };
-		56C1B9381C425A7900990D01 /* 1771694697_4194836_l.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = 1771694697_4194836_l.mp3; sourceTree = "<group>"; };
-		56DBB02A1C116A280089EC56 /* music_list.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = music_list.json; sourceTree = "<group>"; };
 		76CDD7DA644716A3EBA6F9D9 /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		9B1097A24F85CAE0DADCD031 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
 		BD84ABFB7556BE1739576F06 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
@@ -334,7 +326,6 @@
 			children = (
 				5643E1B71C0C3639005D1A1C /* MusicListViewController.h */,
 				5643E1B81C0C3639005D1A1C /* MusicListViewController.m */,
-				56DBB02A1C116A280089EC56 /* music_list.json */,
 			);
 			path = MusicList;
 			sourceTree = "<group>";
@@ -392,9 +383,6 @@
 		56C1B9331C425A7900990D01 /* Musics */ = {
 			isa = PBXGroup;
 			children = (
-				56C1B9361C425A7900990D01 /* 1770040300_2031329_l.mp3 */,
-				56C1B9371C425A7900990D01 /* 1770059653_2050944_l.mp3 */,
-				56C1B9381C425A7900990D01 /* 1771694697_4194836_l.mp3 */,
 			);
 			path = Musics;
 			sourceTree = "<group>";
@@ -478,7 +466,7 @@
 				TargetAttributes = {
 					5643E14A1C0C2AEA005D1A1C = {
 						CreatedOnToolsVersion = 7.1;
-						DevelopmentTeam = 9KBNV59EQ4;
+						DevelopmentTeam = 5N565F3BQ9;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
@@ -522,14 +510,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56C1B9421C425A7900990D01 /* 1771694697_4194836_l.mp3 in Resources */,
-				56DBB02B1C116A280089EC56 /* music_list.json in Resources */,
 				5643E1AC1C0C35CC005D1A1C /* Music.storyboard in Resources */,
-				56C1B9401C425A7900990D01 /* 1770040300_2031329_l.mp3 in Resources */,
 				5643E1B61C0C3608005D1A1C /* MusicList.storyboard in Resources */,
 				5643E15E1C0C2AEA005D1A1C /* LaunchScreen.storyboard in Resources */,
 				5643E15B1C0C2AEA005D1A1C /* Assets.xcassets in Resources */,
-				56C1B9411C425A7900990D01 /* 1770059653_2050944_l.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -754,7 +738,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer: tao yu (76KYA9L8D2)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 9KBNV59EQ4;
+				DEVELOPMENT_TEAM = 5N565F3BQ9;
 				GCC_PREFIX_HEADER = "Enesco/Enesco-Prefix.pch";
 				INFOPLIST_FILE = Enesco/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
@@ -773,7 +757,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer: tao yu (76KYA9L8D2)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 9KBNV59EQ4;
+				DEVELOPMENT_TEAM = 5N565F3BQ9;
 				GCC_PREFIX_HEADER = "Enesco/Enesco-Prefix.pch";
 				INFOPLIST_FILE = Enesco/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;

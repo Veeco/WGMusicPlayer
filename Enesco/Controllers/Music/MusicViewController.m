@@ -19,12 +19,14 @@
 #import "MBProgressHUD.h"
 #import <MediaPlayer/MediaPlayer.h>
 
+NSString *const pathKey = @"pathKey";
+NSString *const progressKey = @"progressKey";
 
 static void *kStatusKVOKey = &kStatusKVOKey;
 static void *kDurationKVOKey = &kDurationKVOKey;
 static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
 
-@interface MusicViewController ()
+@interface MusicViewController () <MusicSliderDelegate>
 @property (nonatomic, strong) MusicEntity *musicEntity;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *albumImageLeftConstraint;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *albumImageRightConstraint;
@@ -52,6 +54,7 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
 @property (nonatomic) NSTimer *musicDurationTimer;
 @property (nonatomic) BOOL musicIsPlaying;
 @property (nonatomic) NSInteger currentIndex;
+@property (nonatomic) BOOL sliderTouching;
 @end
 
 @implementation MusicViewController
@@ -72,6 +75,7 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
 - (void)viewDidLoad {
     [super viewDidLoad];
     [self adapterIphone4];
+    _musicSlider.delegate = self;
     _musicDurationTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(updateSliderValue:) userInfo:nil repeats:YES];
     _currentIndex = 0;
     _musicIndicator = [MusicIndicator sharedInstance];
@@ -316,9 +320,9 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
 }
 
 - (void)addPanRecognizer {
-    UISwipeGestureRecognizer *swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(didTouchDismissButton:)];
-    swipeRecognizer.direction = UISwipeGestureRecognizerDirectionDown;
-    [self.view addGestureRecognizer:swipeRecognizer];
+//    UISwipeGestureRecognizer *swipeRecognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(didTouchDismissButton:)];
+//    swipeRecognizer.direction = UISwipeGestureRecognizerDirectionDown;
+//    [self.view addGestureRecognizer:swipeRecognizer];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
@@ -405,17 +409,16 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
     }
 }
 
-- (IBAction)didChangeMusicSliderValue:(id)sender {
+- (IBAction)didChangeMusicSliderValue:(MusicSlider *)sender {
+    
+    self.sliderTouching = YES;
+    
     if (_streamer.status == DOUAudioStreamerFinished) {
         _streamer = nil;
         
         [self createStreamer];
-        
     }
-    
-    [_streamer setCurrentTime:[_streamer duration] * _musicSlider.value];
     [self updateProgressLabelValue];
-    [self updateNowPlayingInfoCenterTime];
 }
 
 - (IBAction)playPreviousMusic:(id)sender {
@@ -496,6 +499,9 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
     if (!_streamer) {
         return;
     }
+    if (self.sliderTouching) {
+        return;
+    }
     if (_streamer.status == DOUAudioStreamerFinished) {
         [_streamer play];
     }
@@ -573,8 +579,15 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
     }
 }
 - (void)updateProgressLabelValue {
-    _beginTimeLabel.text = [NSString timeIntervalToMMSSFormat:_streamer.currentTime];
+    _beginTimeLabel.text = [NSString timeIntervalToMMSSFormat:_streamer.duration * _musicSlider.value];
     _endTimeLabel.text = [NSString timeIntervalToMMSSFormat:_streamer.duration];
+    if (!self.prePlay) {
+        double target = _streamer.currentTime - 5;
+        if (target < 0) {
+            target = 0;
+        }
+        [NSUserDefaults.standardUserDefaults setObject:@(target) forKey:progressKey];
+    }
 }
 
 - (void)updateBufferingStatus {
@@ -604,9 +617,10 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
     
     Track *track = [[Track alloc] init];
     
-    NSString *soundFilePath = [[NSBundle mainBundle] pathForResource:_musicEntity.fileName ofType: @"mp3"];
-    NSURL *fileURL = [[NSURL alloc] initFileURLWithPath:soundFilePath];
-    NSLog(@"%@ MP3路径",soundFilePath);
+//    NSString *soundFilePath = [[NSBundle mainBundle] pathForResource:_musicEntity.fileName ofType: @"mp3"];
+//    NSURL *fileURL = [[NSURL alloc] initFileURLWithPath:soundFilePath];
+    NSURL *fileURL = [NSURL fileURLWithPath:_musicEntity.musicUrl];
+    NSLog(@"%@ MP3路径", fileURL);
 //    track.audioFileURL = [NSURL URLWithString:_musicEntity.musicUrl];
     track.audioFileURL = fileURL;
     
@@ -620,6 +634,19 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
     
     [self addStreamerObserver];
     [self.streamer play];
+    [NSUserDefaults.standardUserDefaults setObject:_musicEntity.name forKey:pathKey];
+    
+    // 加载到上次播放位置
+    if (self.prePlay) {
+        
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            
+            [self.streamer pause];
+            double current = [NSUserDefaults.standardUserDefaults doubleForKey:progressKey];
+            [_streamer setCurrentTime:current];
+            self.prePlay = NO;
+        });
+    }
 }
 
 - (void)removeStreamerObserver {
@@ -667,6 +694,7 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
             break;
             
         case DOUAudioStreamerPaused:
+            _musicIndicator.state = NAKPlaybackIndicatorViewStatePaused;
             break;
             
         case DOUAudioStreamerIdle:
@@ -757,6 +785,23 @@ static void *kBufferingRatioKVOKey = &kBufferingRatioKVOKey;
     [application endReceivingRemoteControlEvents];
 }
 
+#pragma mark - <MusicSliderDelegate>
 
+/// 松手回调
+/// @param musicSlider 自身
+- (void)touchesEndedWithMusicSlider:(nonnull __kindof MusicSlider *)musicSlider {
+    
+    self.sliderTouching = NO;
+    
+    if (_streamer.status == DOUAudioStreamerFinished) {
+        _streamer = nil;
+        
+        [self createStreamer];
+    }
+    
+    [_streamer setCurrentTime:[_streamer duration] * _musicSlider.value];
+    [self updateProgressLabelValue];
+    [self updateNowPlayingInfoCenterTime];
+}
 
 @end

@@ -11,6 +11,7 @@
 #import "MusicListCell.h"
 #import "MusicIndicator.h"
 #import "MBProgressHUD.h"
+#import <AVFoundation/AVFoundation.h>
 
 @interface MusicListViewController () <MusicViewControllerDelegate, MusicListCellDelegate>
 @property (nonatomic, strong) NSMutableArray *musicEntities;
@@ -22,13 +23,14 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.tableView.tableFooterView = [[UIView alloc] initWithFrame:CGRectZero];
-    self.navigationItem.title = @"Music List";
+    self.navigationItem.title = @"一些事一些情";
     [self headerRefreshing];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     [self createIndicatorView];
+    [self.tableView reloadData];
 }
 
 # pragma mark - Custom right bar button item
@@ -38,12 +40,13 @@
     indicator.hidesWhenStopped = NO;
     indicator.tintColor = [UIColor redColor];
     
-    if (indicator.state != NAKPlaybackIndicatorViewStatePlaying) {
-        indicator.state = NAKPlaybackIndicatorViewStatePlaying;
-        indicator.state = NAKPlaybackIndicatorViewStateStopped;
-    } else {
-        indicator.state = NAKPlaybackIndicatorViewStatePlaying;
-    }
+//    if (indicator.state != NAKPlaybackIndicatorViewStatePlaying) {
+//        indicator.state = NAKPlaybackIndicatorViewStatePlaying;
+//        indicator.state = NAKPlaybackIndicatorViewStateStopped;
+//    } else {
+//        indicator.state = NAKPlaybackIndicatorViewStatePlaying;
+//    }
+    indicator.state = indicator.state;
     
     [self.navigationController.navigationBar addSubview:indicator];
     
@@ -65,9 +68,44 @@
 # pragma mark - Load data from server
 
 - (void)headerRefreshing {
-    NSDictionary *musicsDict = [self dictionaryWithContentsOfJSONString:@"music_list.json"];
-    self.musicEntities = [MusicEntity arrayOfEntitiesFromArray:musicsDict[@"data"]].mutableCopy;
+    
+    NSMutableArray<MusicEntity *> *arrM = @[].mutableCopy;
+    NSString *path = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES).lastObject;
+    NSFileManager *fileManger = [NSFileManager defaultManager];
+    BOOL isDir = NO;
+    NSNumber *lastSongIndex = nil;
+    if ([fileManger fileExistsAtPath:path isDirectory:&isDir] && isDir) {
+        NSString *lastSongName = [NSUserDefaults.standardUserDefaults objectForKey:pathKey];
+        NSArray *songArray = [fileManger contentsOfDirectoryAtPath:path error:nil];
+        if (songArray.count) {
+            songArray = [songArray sortedArrayUsingComparator:^NSComparisonResult(NSString * _Nonnull obj1, NSString * _Nonnull obj2) {
+                return [obj1 compare:obj2];
+            }];
+        }
+        NSString *songPath = nil;
+        for (NSString *name in songArray) {
+            songPath = [path stringByAppendingPathComponent:name];
+            if ([fileManger fileExistsAtPath:songPath isDirectory:&isDir] && !isDir) {
+                MusicEntity *music = [MusicEntity new];
+                music.musicUrl = songPath;
+                music.name = name;
+                music.artistName = @"双低";
+                [arrM addObject:music];
+                if ([name isEqualToString:lastSongName]) {
+                    lastSongIndex = @([songArray indexOfObject:name]);
+                }
+            }
+        }
+    }
+    //    NSDictionary *musicsDict = [self dictionaryWithContentsOfJSONString:@"music_list.json"];
+    //    [MusicEntity arrayOfEntitiesFromArray:musicsDict[@"data"]].mutableCopy;
+    self.musicEntities = arrM;
     [self.tableView reloadData];
+    
+    if (lastSongIndex) {
+        [self handleDidSelectRowAtIndexPath:[NSIndexPath indexPathForRow:lastSongIndex.intValue inSection:0] prePlay:YES];
+        [self.tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:lastSongIndex.intValue inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:NO];
+    }
 }
 
 - (NSDictionary *)dictionaryWithContentsOfJSONString:(NSString *)fileLocation {
@@ -81,56 +119,50 @@
     return result;
 }
 
-# pragma mark - Tableview delegate
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+- (void)handleDidSelectRowAtIndexPath:(NSIndexPath *)indexPath prePlay:(BOOL)prePlay {
+    
     if (_delegate && [_delegate respondsToSelector:@selector(playMusicWithSpecialIndex:)]) {
         [_delegate playMusicWithSpecialIndex:indexPath.row];
     } else {
         MusicViewController *musicVC = [MusicViewController sharedInstance];
-        musicVC.musicTitle = self.navigationItem.title;
-        musicVC.musicEntities = _musicEntities;
-        musicVC.specialIndex = indexPath.row;
-        musicVC.delegate = self;
-        musicVC.dontReloadMusic = NO;
+        if (![musicVC.currentPlayingMusic.musicUrl isEqualToString:[_musicEntities[indexPath.row] musicUrl]]) {
+            musicVC.musicTitle = self.navigationItem.title;
+            musicVC.musicEntities = _musicEntities;
+            musicVC.delegate = self;
+            musicVC.specialIndex = indexPath.row;
+            musicVC.dontReloadMusic = NO;
+            if (prePlay) { musicVC.prePlay = YES; }
+        }
+        else {
+            musicVC.dontReloadMusic = YES;
+        }
         [self presentToMusicViewWithMusicVC:musicVC];
     }
     [self showMiddleHint:@"loading"];
-    [self updatePlaybackIndicatorWithIndexPath:indexPath];
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    [self.tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+# pragma mark - Tableview delegate
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+    [self handleDidSelectRowAtIndexPath:indexPath prePlay:NO];
 }
 
 # pragma mark - Jump to music view
 
 - (void)presentToMusicViewWithMusicVC:(MusicViewController *)musicVC {
     UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:musicVC];
+    navigationController.modalPresentationStyle = UIModalPresentationFullScreen;
     [self.navigationController presentViewController:navigationController animated:YES completion:nil];
 }
 
 # pragma mark - Update music indicator state
 
-- (void)updatePlaybackIndicatorWithIndexPath:(NSIndexPath *)indexPath {
-    for (MusicListCell *cell in self.tableView.visibleCells) {
-        cell.state = NAKPlaybackIndicatorViewStateStopped;
-    }
-    MusicListCell *musicsCell = [self.tableView cellForRowAtIndexPath:indexPath];
-    musicsCell.state = NAKPlaybackIndicatorViewStatePlaying;
-}
-
-- (void)updatePlaybackIndicatorOfCell:(MusicListCell *)cell {
-    MusicEntity *music = cell.musicEntity;
-    if (music.musicId == [[MusicViewController sharedInstance] currentPlayingMusic].musicId) {
-        cell.state = NAKPlaybackIndicatorViewStateStopped;
-        cell.state = [MusicIndicator sharedInstance].state;
-    } else {
-        cell.state = NAKPlaybackIndicatorViewStateStopped;
-    }
-}
-
+// 播放状态变更回调
 - (void)updatePlaybackIndicatorOfVisisbleCells {
-    for (MusicListCell *cell in self.tableView.visibleCells) {
-        [self updatePlaybackIndicatorOfCell:cell];
-    }
+    
+    [self.tableView reloadData];
 }
 
 # pragma mark - Tableview datasource
@@ -150,7 +182,13 @@
     cell.musicNumber = indexPath.row + 1;
     cell.musicEntity = music;
     cell.delegate = self;
-    [self updatePlaybackIndicatorOfCell:cell];
+    cell.state = NAKPlaybackIndicatorViewStateStopped;
+    
+    MusicViewController *musicVC = [MusicViewController sharedInstance];
+    if ([musicVC.currentPlayingMusic.name isEqualToString:music.name]) {
+        MusicIndicator *indicator = [MusicIndicator sharedInstance];
+        cell.state = indicator.state;
+    }
     return cell;
 }
          

@@ -112,7 +112,8 @@
     NSInteger ti = (NSInteger)interval;
     NSInteger seconds = ti % 60;
     NSInteger minutes = (ti / 60) % 60;
-    return [NSString stringWithFormat:@"%02ld:%02ld", (long)minutes, (long)seconds];
+    NSInteger hours = (ti / 60 / 60) % 24;
+    return [NSString stringWithFormat:@"%02ld:%02ld:%02ld", (long)hours, (long)minutes, (long)seconds];
 }
 
 @end
